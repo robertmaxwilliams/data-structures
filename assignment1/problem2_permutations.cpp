@@ -12,17 +12,33 @@
 #include <iostream>
 using namespace std;
 
-void permute(const string &str){
-    
-    
+void permute(const string &str, int high, int low){
+    if (low == high-1)
+    {
+        cout << str << endl;
+        return;
+    }
+        
+    for (int i = 0; i < high-low; i++)
+    {
+        string front = str.substr(0, low);
+        string letter = str.substr(i+low, 1);
+        string before_letter = str.substr(low, i);
+        string after_letter = str.substr(low+i+1);
+
+        //      unchanged front,   newly moved char,  before char,             after 
+        //cout << i << ", "<< low << ", " << high << ":" << front << "," << letter << "," << before_letter << "," << after_letter << endl;
+        permute(front + letter + before_letter + after_letter, high, low+1);
+
+    }
 
 }
 
-void permute(const string &str, int high, int low){
 
-
+void permute(const string &str){
+    permute(str, str.length(), 0);
 }
 
 int main(){
-
+    permute("abcd");
 }
