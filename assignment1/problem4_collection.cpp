@@ -15,6 +15,7 @@ using namespace std;
 template <typename Object>
 class Collection
 {
+
     public:
 
         Collection(){
@@ -142,3 +143,6 @@ int main()
 
    
 }
+
+
+

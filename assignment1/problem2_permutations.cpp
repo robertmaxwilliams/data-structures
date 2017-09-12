@@ -12,22 +12,29 @@
 #include <iostream>
 using namespace std;
 
+int permutations = 0;
+int calls = 0;
+int steps = 0;
+
 void permute(const string &str, int high, int low){
+    calls++;
+
     if (low == high-1)
     {
         cout << str << endl;
+        permutations++;
         return;
     }
         
     for (int i = 0; i < high-low; i++)
     {
+        steps++;
+
         string front = str.substr(0, low);
         string letter = str.substr(i+low, 1);
         string before_letter = str.substr(low, i);
         string after_letter = str.substr(low+i+1);
 
-        //      unchanged front,   newly moved char,  before char,             after 
-        //cout << i << ", "<< low << ", " << high << ":" << front << "," << letter << "," << before_letter << "," << after_letter << endl;
         permute(front + letter + before_letter + after_letter, high, low+1);
 
     }
@@ -40,5 +47,8 @@ void permute(const string &str){
 }
 
 int main(){
-    permute("abcd");
+    permute("abcdefghij");
+    cout << "permutations: " << permutations << endl;
+    cout << "calls: " << calls << endl;
+    cout << "steps: " << steps << endl;
 }
