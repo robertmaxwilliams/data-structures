@@ -20,6 +20,7 @@ struct node
 	int value;
 	struct node* left = nullptr;
 	struct node* right = nullptr;
+	struct node* parent = nullptr;
 };
 
 
@@ -30,7 +31,15 @@ class BinarySearchTree
 public:
 	// Constructors/Destructors and assignment here.
 	void insert(int value);
-	node* insert(int value, node *tnode);
+	node* insert(int value, node *tnode, node *parent);
+	node* max_node(node *tnode);
+	node* min_node(node *tnode);
+	node* primary_node(node *tnode, bool primary_is_right);
+	node* secondary_node(node *tnode, bool primary_is_right);
+	void delete_node_choose(node *tnode, bool use_largest, bool is_random);
+	void delete_root_largest();
+	void delete_root_smallest();
+	void delete_root_random();
 	void print();
 	void print(node *tnode, int depth);
 	void print_inorder();
@@ -53,24 +62,96 @@ private:
 };
 
 //insert function
-node* BinarySearchTree::insert(int val, node *tnode){
+node* BinarySearchTree::insert(int val, node *tnode, node *parent){
     node *temp=tnode;
     if(temp == nullptr){
         temp = new node;
         temp->value = val;
+		temp->parent = parent;
     }
     else if(val < temp->value){
-        temp->left = insert(val,temp->left);
+        temp->left = insert(val,temp->left, tnode);
     }
     else if(val > temp->value){
-        temp->right = insert(val,temp->right);
+        temp->right = insert(val,temp->right, tnode);
     }
     return temp;
 }
 //function to call insert with root
 void BinarySearchTree::insert(int value){
-	root = insert(value, root);
+	root = insert(value, root, nullptr);
 }
+
+//find node with largest value
+node* BinarySearchTree::max_node(node *tnode){
+	if (tnode->right == nullptr)
+		return tnode;
+	return max_node(tnode->right);
+}
+
+//find node with smallest value
+node* BinarySearchTree::min_node(node *tnode){
+	if (tnode->left == nullptr)
+		return tnode;
+	return max_node(tnode->left);
+}
+
+node* BinarySearchTree::primary_node(node *tnode, bool primary_is_right){
+	if (primary_is_right)
+		return tnode->right;
+	return tnode->left;
+}
+
+node* BinarySearchTree::secondary_node(node *tnode, bool primary_is_right){
+	if (primary_is_right)
+		return tnode->left;
+	return tnode->right;
+}
+
+//delete node by recursvily filling in with primary, or fall back to secondary 
+void BinarySearchTree::delete_node_choose(node *tnode, bool use_largest, bool is_random){
+	if (is_random)
+		use_largest = rand()%2;
+	if (tnode == nullptr)
+		return;
+	if (primary_node(tnode, use_largest) == nullptr){
+		if (secondary_node(tnode, use_largest) == nullptr){
+			//if both children are nullptr, delete yourself (unless parent is null!)
+			if (tnode->parent == nullptr)
+				return;
+			if (secondary_node(tnode->parent, use_largest) == tnode)
+				secondary_node(tnode->parent, use_largest) = nullptr;
+			else 
+				primary_node(tnode->parent, use_largest) = nullptr;
+			delete(tnode);
+		//if primary is null and secondary is not, pull up and recurse
+		} else {
+			tnode->value = seconday_node(tnode, use_largest)->value;
+			delete_node_largest(secondary_node(tnode, use_largest), use_largest, is_random);
+			return;
+		}
+	} else {
+		//if neither is null, use primary, pull its value and recurse
+		tnode->value = primary_node(tnode, use_largest)->value;
+		delete_node_largest(primary_node(tnode, use_largest), use_largest, is_random);
+	}
+}
+
+//delete node and fill in with largest, recursively
+void BinarySearchTree::delete_root_largest(){
+	delete_node_choose(root, true, false);
+}
+
+//delete node and fill in with smallest, recursively
+void BinarySearchTree::delete_root_smallest(){
+	delete_node_choose(root, true, false);
+}
+
+//delete node and fill in at random, recursively
+void BinarySearchTree::delete_root_random(){
+	delete_node_choose(root, false, true);
+}
+
 
 //print everything from tnode on
 void BinarySearchTree::print(node*tnode, int depth){
@@ -81,8 +162,8 @@ void BinarySearchTree::print(node*tnode, int depth){
 	if (depth > 0)
 		cout << "|>";
 	cout << tnode->value << endl;
-	print(tnode->left, depth+1);
 	print(tnode->right, depth+1);
+	print(tnode->left, depth+1);
 }
 
 //print the whole tree
@@ -287,6 +368,7 @@ BinarySearchTree skewedKTree(int k){
 }
 
 int main(){
+	srand(time(NULL));
 	//BinarySearchTree tree = BinarySearchTree();
 	BinarySearchTree tree = randomKTree(9);
 	tree.print();
@@ -310,4 +392,22 @@ int main(){
 
 	cout << tree_skewed.deepest_node_depth() << endl;
 	cout << tree_skewed.shallowest_node_depth() << endl;
+
+
+
+	/*
+	 * ====================================
+	 * QUESTION ANSWERING CODE
+     *====================================
+	 */
+	cout << "Problem 1: show the result of inserting 3, 1, 4, 6, 9, 2, 5, 7 into an initially empty binary tree" << endl;
+	cout << "Note the format the tree is diplayed in, with right child the left child under its parent." << endl;
+	BinarySearchTree myTree = BinarySearchTree();
+	vector<int> numbers = {3, 1, 4, 6, 9, 2, 5, 7};
+	for (int number : numbers)
+		myTree.insert(number);
+	myTree.print();	
+	myTree.delete_largest();
+	myTree.print();
+	
 }

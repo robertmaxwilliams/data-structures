@@ -286,6 +286,23 @@ BinarySearchTree skewedKTree(int k){
 	return tree;
 }
 
+
+/*
+ * ==================================================
+ * ITERATOR
+ * =================================================
+ */
+class BST_iter{
+private:
+  typedef vector<Student> StudentList;
+  StudentList students;
+public:
+  typedef StudentList::iterator iterator;
+  typedef StudentList::const_iterator const_iterator;
+  iterator begin() { return students.begin(); }
+  iterator end() { return students.end(); }
+  ...
+};
 int main(){
 	//BinarySearchTree tree = BinarySearchTree();
 	BinarySearchTree tree = randomKTree(9);
