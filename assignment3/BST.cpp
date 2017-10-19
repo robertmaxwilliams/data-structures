@@ -13,6 +13,8 @@
 #include <algorithm>
 #include <random>
 
+#include <iterator>     // std::iterator, std::input_iterator_tag
+
 using namespace std;
 
 struct node 
@@ -119,21 +121,21 @@ void BinarySearchTree::delete_node_choose(node *tnode, bool use_largest, bool is
 			//if both children are nullptr, delete yourself (unless parent is null!)
 			if (tnode->parent == nullptr)
 				return;
-			if (secondary_node(tnode->parent, use_largest) == tnode)
-				secondary_node(tnode->parent, use_largest) = nullptr;
+			if (tnode->parent->left == tnode)
+				tnode->parent->left = nullptr;
 			else 
-				primary_node(tnode->parent, use_largest) = nullptr;
+				tnode->parent->right = nullptr;
 			delete(tnode);
 		//if primary is null and secondary is not, pull up and recurse
 		} else {
-			tnode->value = seconday_node(tnode, use_largest)->value;
-			delete_node_largest(secondary_node(tnode, use_largest), use_largest, is_random);
+			tnode->value = secondary_node(tnode, use_largest)->value;
+			delete_node_choose(secondary_node(tnode, use_largest), use_largest, is_random);
 			return;
 		}
 	} else {
 		//if neither is null, use primary, pull its value and recurse
 		tnode->value = primary_node(tnode, use_largest)->value;
-		delete_node_largest(primary_node(tnode, use_largest), use_largest, is_random);
+		delete_node_choose(primary_node(tnode, use_largest), use_largest, is_random);
 	}
 }
 
@@ -144,7 +146,7 @@ void BinarySearchTree::delete_root_largest(){
 
 //delete node and fill in with smallest, recursively
 void BinarySearchTree::delete_root_smallest(){
-	delete_node_choose(root, true, false);
+	delete_node_choose(root, false, false);
 }
 
 //delete node and fill in at random, recursively
@@ -341,9 +343,7 @@ BinarySearchTree balancedKTree(int k){
 	BinarySearchTree tree;
 	for (int number : numbers){
 		tree.insert(number);
-		cout << number << ' ';
 	}
-	cout << endl;
 	
 	return tree;
 }
@@ -360,54 +360,136 @@ BinarySearchTree skewedKTree(int k){
 	//insert the numbers into the tree in this order
 	BinarySearchTree tree;
 	for (int number : numbers){
-		cout << number << endl;
 		tree.insert(number);
 	}
 	
 	return tree;
 }
 
+/*
+ *==============================
+ * Iterator implementation
+ *=============================
+ */
+
+vector<int> toVector(node *tnode){
+	if (tnode == nullptr){
+		vector<int> empty;
+		return empty;
+	}
+	vector<int> temp, left_child, right_child;
+	left_child = ::toVector(tnode->left);
+	right_child = ::toVector(tnode->right);
+	temp = left_child;
+	temp.insert(temp.end(), right_child.begin(), right_child.end());
+	return temp;
+}
+	
+//borrowed from here: https://gist.github.com/jeetsukumaran/307264
+class TreeIterator
+{
+	public:
+		typedef TreeIterator self_type;
+		typedef std::vector<int>::iterator iterator;  
+		typedef int  value_type;
+		typedef int& reference;
+		typedef int* pointer;
+		typedef std::forward_iterator_tag iterator_category;
+		typedef int difference_type;
+		TreeIterator(node* ptr) { 
+			int_vector = toVector(ptr);
+			iter = int_vector.begin();	
+			}
+		iterator begin() { return int_vector.begin(); }
+		iterator end() {return int_vector.end(); }
+		self_type operator++() { self_type i = *this; iter++; return i; }
+		self_type operator++(int junk) {iter++; return *this; }
+		reference operator*() { return *iter; }
+		std::vector<int>::iterator operator->() { return iter; }
+		bool operator==(const self_type& rhs) { return *iter == *(rhs.iter); }
+		bool operator!=(const self_type& rhs) { return *iter != *(rhs.iter); }
+	private:
+		pointer _ptr;
+		vector<int> int_vector;
+		std::vector<int>::iterator iter;
+};
+
+
+	
 int main(){
 	srand(time(NULL));
-	//BinarySearchTree tree = BinarySearchTree();
-	BinarySearchTree tree = randomKTree(9);
-	tree.print();
-	tree.print_inorder();
-	cout << tree.countNodes() << endl;
-	cout << tree.countLeaves() << endl;
-	cout << tree.countFullNodes() << endl;
-	cout << "Balanced tree: " << endl;
-	BinarySearchTree tree_balanced = balancedKTree(10);
-	tree_balanced.print();
-
-	cout << tree_balanced.deepest_node_depth() << endl;
-	cout << tree_balanced.shallowest_node_depth() << endl;
-
-	cout << "Kth smallest: " << endl;
-	cout << tree_balanced.findKth(7) << " is the 7th element, zero-based counting" << endl;
-
-	cout << "Skewed Tree: " << endl;
-	BinarySearchTree tree_skewed = skewedKTree(10);
-	tree_skewed.print();
-
-	cout << tree_skewed.deepest_node_depth() << endl;
-	cout << tree_skewed.shallowest_node_depth() << endl;
-
-
 
 	/*
 	 * ====================================
 	 * QUESTION ANSWERING CODE
      *====================================
 	 */
-	cout << "Problem 1: show the result of inserting 3, 1, 4, 6, 9, 2, 5, 7 into an initially empty binary tree" << endl;
+	cout << endl;
+	cout << "Problem 1: \na)show the result of inserting 3, 1, 4, 6, 9, 2, 5, 7 into an initially empty binary tree" << endl;
 	cout << "Note the format the tree is diplayed in, with right child the left child under its parent." << endl;
 	BinarySearchTree myTree = BinarySearchTree();
 	vector<int> numbers = {3, 1, 4, 6, 9, 2, 5, 7};
 	for (int number : numbers)
 		myTree.insert(number);
 	myTree.print();	
-	myTree.delete_largest();
+	cout << "b) Now we will delete the root and see what it looks like" << endl;
+	myTree.delete_root_largest();
 	myTree.print();
+
+	cout << endl;
+	cout << "Problem 2: find running time of my effecient algorythms for:" << endl;
+	cout << "a) number of nodes. This visits every node once, so it runs on O(n)" << endl;
+	cout << "nodes in myTree: " << myTree.countNodes() << endl << endl;
+	cout << "b) number of leaves. This also has to visit each node once, so it runs on O(n)" << endl;
+	cout << "leaves in myTree: " << myTree.countLeaves() << endl << endl;
+	cout << "c) number of full nodes. Any node can have this, so we have to traverse the entire tree, so again O(n)" << endl;
+	cout << "full nodes in myTree: " << myTree.countFullNodes() << endl << endl;
+
+	cout << endl;
+	cout << "problem 3: algorithm to findKth smallest node. My algorithm, with an unmodified tree, involves checking number of children under each node, and going left to go smaller and right to find a larger elements. Each call takes O(n) and it takes on average O(log(N)) to get to the right element, so it runs on O(N*log(N))." << endl;
+	cout << "To find it in O(log(N)), each node needs to keep track of its number of children. Inserting only needs to increment this value for each node it visits, so insertion remains O(log(n)). With this algorythm, we can find Kth element in logarithmic time." << endl;
+	cout << "Kth smallest: " << endl;
+	cout << myTree.findKth(4) << " is the 4th element, zero-based counting." << endl;
+	
+	cout << endl;
+
+	cout << "problem 4: iterator implementation";
+	TreeIterator myIter = TreeIterator(myTree.root);
+	for (int tnode : myIter){
+		cout << tnode << ' ';
+	}
+	cout << endl;
+	
+	cout << "problem 5" << endl;
+	cout << "a) generate n node random binary tree. Runs in O(nlog(n)) time because of individual insertions." << endl;
+	BinarySearchTree random_tree = randomKTree(9);
+	random_tree.print();
+	
+	cout << endl;
+	cout << "b) generate N-node balanced and skewed tree. Balanced runs on O(nlog(n)) and skewed in O(n)" << endl;
+	BinarySearchTree balanced = balancedKTree(9);
+	cout << "balanced: " << endl;
+	balanced.print();
+	cout << "skewed: " << endl;
+	BinarySearchTree skewed = skewedKTree(9);
+	skewed.print();
+
+	cout << "c) delete and replace by largest, smallest and random. compare results. Random is slightly slower but usually maintains balance." << endl;
+	BinarySearchTree a = balancedKTree(100); 
+	BinarySearchTree b = balancedKTree(100); 
+	BinarySearchTree c = balancedKTree(100); 
+	for (int i = 0; i < 90; i++){
+		a.delete_root_largest();
+		b.delete_root_smallest();
+		c.delete_root_random();
+	}
+	cout << endl << "removed largest:" << endl;
+	a.print();
+	cout << endl << "removed smallest:" << endl;
+	b.print();
+	cout << endl << "removed random:" << endl;
+	c.print();
+
+	
 	
 }

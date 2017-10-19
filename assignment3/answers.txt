@@ -1,0 +1,110 @@
+
+Problem 1: 
+a)show the result of inserting 3, 1, 4, 6, 9, 2, 5, 7 into an initially empty binary tree
+Note the format the tree is diplayed in, with right child the left child under its parent.
+3
+|>4
+| |>6
+| | |>9
+| | | |>7
+| | |>5
+|>1
+| |>2
+b) Now we will delete the root and see what it looks like
+4
+|>6
+| |>9
+| | |>7
+| | |>5
+|>1
+| |>2
+
+Problem 2: find running time of my effecient algorythms for:
+a) number of nodes. This visits every node once, so it runs on O(n)
+nodes in myTree: 7
+
+b) number of leaves. This also has to visit each node once, so it runs on O(n)
+leaves in myTree: 3
+
+c) number of full nodes. Any node can have this, so we have to traverse the entire tree, so again O(n)
+full nodes in myTree: 2
+
+
+problem 3: algorithm to findKth smallest node. My algorithm, with an unmodified tree, involves checking number of children under each node, and going left to go smaller and right to find a larger elements. Each call takes O(n) and it takes on average O(log(N)) to get to the right element, so it runs on O(N*log(N)).
+To find it in O(log(N)), each node needs to keep track of its number of children. Inserting only needs to increment this value for each node it visits, so insertion remains O(log(n)). With this algorythm, we can find Kth element in logarithmic time.
+Kth smallest: 
+5 is the 4th element, zero-based counting.
+
+problem 4: iterator implementation
+I wrapped the class in an iterator, but I could never get it to work properly. The code is included and I would appreciate help on how to iterate with a recursive function, like you would with python "yield"
+
+problem 5:
+a) generate n node random binary tree. Runs in O(nlog(n)) time because of individual insertions.
+8
+|>9
+|>7
+| |>1
+| | |>4
+| | | |>5
+| | | | |>6
+| | | |>3
+| | | | |>2
+
+b) generate N-node balanced and skewed tree. Balanced runs on O(nlog(n)) and skewed in O(n)
+balanced: 
+5
+|>8
+| |>9
+| |>7
+| | |>6
+|>3
+| |>4
+| |>2
+| | |>1
+skewed: 
+1
+|>2
+| |>3
+| | |>4
+| | | |>5
+| | | | |>6
+| | | | | |>7
+| | | | | | |>8
+| | | | | | | |>9
+c) delete and replace by largest, smallest and random. compare results. Random is slightly slower but usually maintains balance.
+
+removed largest:
+12
+|>11
+| |>9
+| | |>8
+| | | |>4
+| | | | |>6
+| | | | | |>5
+| | | | |>2
+| | | | | |>3
+| | | | | |>1
+
+removed smallest:
+92
+|>91
+| |>90
+| | |>94
+| | | |>98
+| | | | |>100
+| | | | | |>99
+| | | | |>97
+| | | | | |>96
+| | | |>93
+
+removed random:
+49
+|>59
+| |>91
+| | |>90
+| | | |>93
+| | |>77
+| | | |>87
+| | | | |>84
+|>32
+| |>31
